@@ -10,8 +10,7 @@ contract VolcanoCoin is ERC20, Ownable {
         address to;
     }
     
-    mapping(address => uint256) private _balances;
-    mapping(address => Payment[]) private _payments;
+    mapping(address => Payment[]) public _payments;
     
     event TotalSupplyIncreased(uint256);
     
@@ -19,17 +18,23 @@ contract VolcanoCoin is ERC20, Ownable {
         _mint(msg.sender, 10000);
     }
     
-    function _mint() public onlyOwner {
+    function changeTokenSupply() public onlyOwner {
         _mint(msg.sender, 1000);
         emit TotalSupplyIncreased(1000);
     }
     
-    function getBalance(address addr) public view returns (uint256) {
-        return _balances[addr];
-    }
-    
     function getPayments(address addr) public view returns (Payment[] memory) {
         return _payments[addr];
+    }
+    
+    function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        _transfer(msg.sender, recipient, amount);
+        recordPayment(msg.sender, recipient, amount);
+        return true;
+    }
+    
+    function recordPayment(address sender, address recipient, uint256 amount) internal {
+        _payments[sender].push(Payment(amount, recipient));
     }
     
 }
